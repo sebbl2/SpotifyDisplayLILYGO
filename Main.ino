@@ -1,5 +1,7 @@
 /*******************************************************************
 This code is partically based off of the ArduinoSpotify example
+the rest is from https://github.com/Acorn221 (THX !)
+Edited as marked by Sebbl2
  *******************************************************************/
 
 // ----------------------------
@@ -11,7 +13,16 @@ This code is partically based off of the ArduinoSpotify example
 #include <WiFiClientSecure.h>
 #include <ArduinoSpotifyCert.h>
 #include <GxEPD.h>
-#include <GxGDE0213B72B/GxGDE0213B72B.h>      // 2.13" b/w
+
+// ----------------------------
+// Displays Lilygo T5_V2.3_2.13
+// uncomment the display you need Lilygo T5_V2.3_2.13 (20190107)doesn´t work with 2.13" b/w 
+// ----------------------------
+
+// #include <GxGDEM0213B74/GxGDEM0213B74.h> // 2.13" b/w form GoodDisplay 4-color
+// #include <GxGDEH0213B73/GxGDEH0213B73.h> // 2.13" b/w old panel (works as well)
+// #include <GxGDE0213B72B/GxGDE0213B72B.h>      // 2.13" b/w (original)
+
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include <GxIO/GxIO_SPI/GxIO_SPI.h>
 #include <GxIO/GxIO.h>
@@ -35,7 +46,8 @@ char clientSecret[] = ""; // Your client Secret of your spotify APP (Do Not shar
 // Country code, including this is advisable
 #define SPOTIFY_MARKET "GB"
 
-#define SPOTIFY_REFRESH_TOKEN ""
+// IMPORTANT :Compile getRefreshToken in spotify-api-arduino-master/examples/.../getRefreshToken (from witnessmenow) first!!! than come back and add the given Refresh_Token 
+#define SPOTIFY_REFRESH_TOKEN "xxxx" 
 
 const unsigned char spotifyLogo [] PROGMEM = {
   0xff, 0xff, 0xe0, 0x1f, 0xff, 0xfc, 0xff, 0xfe, 0x00, 0x01, 0xff, 0xfc, 0xff, 0xf8, 0x00, 0x00, 
@@ -58,8 +70,10 @@ const unsigned char spotifyLogo [] PROGMEM = {
   0xe0, 0x1f, 0xff, 0xfc
 };
 
-const char* root_ca = \ // this certificate is for scannables.scdn.co to get the scan link
-"-----BEGIN CERTIFICATE-----\n"
+// this certificate is for scannables.scdn.co to get the scan link Edit by Sebbl2:correction of two backslashs
+// (Notice by Sebbl2: Something seems broken with this CERT, reference to root_ca in Line 276 deleted)
+const char* root_ca = "-----BEGIN CERTIFICATE-----\n" \ 
+"MIIGAzCCBOugAwIBAgIQD20nTNczzv6uOjzyUv6AqjANBgkqhkiG9w0BAQsFADBN\n" \
 "MIIGAzCCBOugAwIBAgIQD20nTNczzv6uOjzyUv6AqjANBgkqhkiG9w0BAQsFADBN\n" \
 "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMScwJQYDVQQDEx5E\n" \
 "aWdpQ2VydCBTSEEyIFNlY3VyZSBTZXJ2ZXIgQ0EwHhcNMjAwODA1MDAwMDAwWhcN\n" \
@@ -137,8 +151,8 @@ void setup()
 
     client.setCACert(spotify_server_cert);
 
-    // If you want to enable some extra debugging
-    // uncomment the "#define SPOTIFY_DEBUG" in ArduinoSpotify.h
+    // If you want to disable some extra debugging
+    // comment the "#define SPOTIFY_DEBUG" in ArduinoSpotify.h
 
     Serial.println("Refreshing Access Tokens");
     if (!spotify.refreshAccessToken())
@@ -259,7 +273,7 @@ void printCurrentlyPlayingToDisplay(CurrentlyPlaying currentlyPlaying){
     HTTPClient http;
     String url = "https://scannables.scdn.co/uri/plain/svg/ffffff/black/256/";
     url.concat(currentlyPlaying.trackUri); // add the URI
-    http.begin(url.c_str(), root_ca); //Specify the URL and certificate
+    http.begin(url.c_str()); //Specify the URL and certificate Edit by Sebbl2: deleted root_ca to get rid off the Error on HTTP request.The only way code and logo is displayed
     int httpCode = http.GET();//Make the request
     if (httpCode > 0) { //Check for the returning code
           String payload = http.getString();
